@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  pears-federated:
+    env_file:
+      - .env
+    build:
+      context: ../
+      dockerfile: deployment/Dockerfile
+    environment:
+      - PEARS_LANGS
+      - TRANSLATION_DIR
+      - MAIL_DEFAULT_SENDER
+      - EMAIL_USER
+      - MAIL_SERVER
+      - MAIL_PORT
+      - EMAIL_PASSWORD
+      - SECRET_KEY
+      - SECURITY_PASSWORD_SALT
+      - PA_USERNAME
+      - SITENAME
+      - SITE_TOPIC
+      - SEARCH_PLACEHOLDER
+    ports:
+      - "8000:8000"
+
+  https-portal:
+    env_file:
+      - .env
+    image: steveltn/https-portal:1
+    environment:
+      DOMAINS: ${DOMAIN} -> http://pears-federated:8000
+      STAGE: ${STAGE}
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - pears-federated
+    volumes:
+      - https-portal-data:/var/lib/https-portal
+
+volumes:
+  https-portal-data:  # Persistent storage for HTTPS certificates and other HTTPS-Portal data
