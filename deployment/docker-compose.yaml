@@ -8,19 +8,19 @@ services:
       context: ../
       dockerfile: deployment/Dockerfile
     environment:
-      - PEARS_LANGS
-      - TRANSLATION_DIR
-      - MAIL_DEFAULT_SENDER
-      - EMAIL_USER
-      - MAIL_SERVER
-      - MAIL_PORT
-      - EMAIL_PASSWORD
-      - SECRET_KEY
-      - SECURITY_PASSWORD_SALT
-      - PA_USERNAME
-      - SITENAME
-      - SITE_TOPIC
-      - SEARCH_PLACEHOLDER
+      - PEARS_LANGS=${PEARS_LANGS}
+      - TRANSLATION_DIR=${TRANSLATION_DIR}
+      - MAIL_DEFAULT_SENDER=${MAIL_DEFAULT_SENDER}
+      - EMAIL_USER=${EMAIL_USER}
+      - MAIL_SERVER=${MAIL_SERVER}
+      - MAIL_PORT=${MAIL_PORT}
+      - EMAIL_PASSWORD=${EMAIL_PASSWORD}
+      - SECRET_KEY=${SECRET_KEY}
+      - SECURITY_PASSWORD_SALT=${SECURITY_PASSWORD_SALT}
+      - PA_USERNAME=${PA_USERNAME}
+      - SITENAME=${SITENAME}
+      - SITE_TOPIC=${SITE_TOPIC}
+      - SEARCH_PLACEHOLDER=${SEARCH_PLACEHOLDER}
     ports:
       - "8000:8000"
 
