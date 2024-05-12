@@ -4,9 +4,7 @@ services:
   pears-federated:
     env_file:
       - .env
-    build:
-      context: ../
-      dockerfile: deployment/Dockerfile
+    image: nandajavarma/pears-federated:latest
     environment:
       - PEARS_LANGS=${PEARS_LANGS}
       - TRANSLATION_DIR=${TRANSLATION_DIR}
@@ -22,6 +20,8 @@ services:
       - SEARCH_PLACEHOLDER=${SEARCH_PLACEHOLDER}
     ports:
       - "8000:8000"
+    volumes:
+      - ./data:/var/lib/pears/data
 
   https-portal:
     env_file:
@@ -29,7 +29,7 @@ services:
     image: steveltn/https-portal:1
     environment:
       DOMAINS: ${DOMAIN} -> http://pears-federated:8000
-      STAGE: ${STAGE}
+      STAGE: ${STAGE:-local}
     ports:
       - "80:80"
       - "443:443"
