@@ -21,7 +21,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./data:/var/lib/pears/data
+      - ${PEARS_DIR}:/var/lib/pears/data
 
   https-portal:
     env_file:
