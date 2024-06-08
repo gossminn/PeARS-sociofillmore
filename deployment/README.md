@@ -92,11 +92,11 @@ Install Vim for editing configuration files:
 
 ### Bringing Up the Docker Compose
 
-Start the Docker Compose services:
+- Start the Docker Compose services:
     ```bash
     docker compose up -d
     ```
-Optionally, you can specify a PaARS federated pod name:
+- Optionally, you can specify a PaARS federated pod name:
     ```bash
     docker compose -p pears_federated_pod_name up -d
     ```
