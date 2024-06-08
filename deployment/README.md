@@ -80,8 +80,8 @@ Install Vim for editing configuration files:
 
 1. Download the `docker-compose.yml` and `env-template` files from the GitHub repository:
     ```bash
-    wget https://raw.githubusercontent.com/PeARSearch/PeARS-federated/86be9ef98ee5d789a24c01711684bee87aa9fdca/deployment/docker-compose.yaml
-    wget https://raw.githubusercontent.com/PeARSearch/PeARS-federated/86be9ef98ee5d789a24c01711684bee87aa9fdca/deployment/.env-template -O .env
+    wget https://raw.githubusercontent.com/PeARSearch/PeARS-federated/nvn/add-deploy-files/deployment/docker-compose.yaml
+    wget https://raw.githubusercontent.com/PeARSearch/PeARS-federated/nvn/add-deploy-files/deployment/.env-template -O .env
     ```
 2. Update the values in the `.env` file to match your configuration ( Follow the instructions in the .env file to fill in the data):
     ```bash
