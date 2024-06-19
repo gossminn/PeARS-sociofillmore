@@ -15,7 +15,6 @@ ENV SQLALCHEMY_DATABASE_URI="sqlite:////var/lib/pears/data/app.db"
 ENV LOGO_PATH="/var/lib/pears/data"
 ENV PODS_DIR="/var/lib/pears/data/pods"
 ENV SUGGESTIONS_DIR="/var/lib/pears/data/userdata"
-ENV LOGO_PATH="/var/lib/pears/data/"
 
 RUN mkdir -p /var/lib/pears/data/pod /var/lib/pears/data/userdata
 
