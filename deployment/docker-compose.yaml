@@ -3,12 +3,12 @@ version: '3.8'
 services:
   pears-federated:
     env_file:
-      - .env
-    image: nandajavarma/pears-federated:latest
+      - ${PEARS_DIR:./}.env
+    image: pearsproject/pears-federated:latest
     ports:
       - "8000:8000"
     volumes:
-      - ${PEARS_DIR}:/var/lib/pears/data
+      - ${PEARS_DIR:./}/data:/var/lib/pears/data
 
   https-portal:
     env_file:
@@ -16,7 +16,7 @@ services:
     image: steveltn/https-portal:1
     environment:
       DOMAINS: ${DOMAIN} -> http://pears-federated:8000
-      STAGE: ${STAGE:-local}
+      STAGE: ${STAGE:-production}
     ports:
       - "80:80"
       - "443:443"
