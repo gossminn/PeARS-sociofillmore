@@ -43,7 +43,7 @@ The following instructions are for Ubuntu. For other distributions, refer to the
 2. Install necessary packages and Docker:
     ```bash
     sudo apt-get update
-    sudo apt-get install -y ca-certificates curl
+    sudo apt-get install -y ca-certificates curl gettext vim
     sudo install -m 0755 -d /etc/apt/keyrings
     sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
     sudo chmod a+r /etc/apt/keyrings/docker.asc
@@ -55,14 +55,6 @@ The following instructions are for Ubuntu. For other distributions, refer to the
 
     sudo apt-get update
     sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-    ```
-
-### Installing Vim
-
-Install Vim for editing configuration files:
-
-    ```bash
-    sudo apt-get install -y vim
     ```
 
 ## Deploying PeARS-dedicated
@@ -96,13 +88,13 @@ We are documenting two different deployment strategies here for single pod and m
        ```
     2. Create a directory to store your instance details and to store persistent data for the instance:
         ```bash
-        mkdir -p ~/${PEARS_DIR}/data # replace pears-pod-name-1 with your pod's name or any other easily identifiable name
+        mkdir -p ${PEARS_DIR}/data
         ```
 
 - **Configure the environmental details for your pod**
     1. Download the `env-template` files from the GitHub repository:
         ```bash
-        wget https://raw.githubusercontent.com/PeARSearch/PeARS-federated/nvn/add-deploy-files/deployment/.env-template -O ~/${PEARS_DIR}/.env
+        wget https://raw.githubusercontent.com/PeARSearch/PeARS-federated/nvn/add-deploy-files/deployment/.env-template -O ${PEARS_DIR}/.env
         ```
     2. Update the values in the `.env` file to match your configuration ( Follow the instructions in the .env file to fill in the data):
         ```bash
@@ -111,7 +103,7 @@ We are documenting two different deployment strategies here for single pod and m
 
 - **Bring Up the Docker Compose**
 
-    > This command assumes that you are running this command from the directory in which the `docker-composen.yaml` file exists
+    > This command assumes that you are running this command from the directory in which the `docker-compose.yaml` file exists
 
     1. Start the Docker Compose services:
         ```bash
@@ -182,12 +174,12 @@ If you want to host another pod on the same server, we will have to re-use the s
             volumes:
             - pears-pod-name-1/data/:/var/lib/pears/data
 
-        pears-federated-pod-2: # rename this to have a more identifiable suffix
+        pears-federated-pod-2: # !! CHANGE rename this to have a more identifiable suffix
             env_file:
-            - pears-pod-name-2/.env # point to your new directory pears-pod-name-2
+            - pears-pod-name-2/.env # !! CHANGE point to your new directory pears-pod-name-2
             image: pearsproject/pears-federated:latest
             volumes:
-            - pears-pod-name-2/data/:/var/lib/pears/data # point to your new directory pears-pod-name-2
+            - pears-pod-name-2/data/:/var/lib/pears/data # !! CHANGE point to your new directory pears-pod-name-2
         ...
 
     ```
@@ -199,19 +191,19 @@ If you want to host another pod on the same server, we will have to re-use the s
     version: '3.8'
 
     services:
-        pears-federated: # if you want you can also rename this to have a more identifiable name
+        pears-federated:
             env_file:
             - pears-pod-name-1/.env
             image: pearsproject/pears-federated:latest
             volumes:
             - pears-pod-name-1/data/:/var/lib/pears/data
 
-        pears-federated-pod-2: #  !! CHANGE: rename this to have a more identifiable suffix
+        pears-federated-pod-2:
             env_file:
-            - pears-pod-name-2/.env # !! CHANGE: point to your new directory pears-pod-name-2
+            - pears-pod-name-2/.env
             image: pearsproject/pears-federated:latest
             volumes:
-            - pears-pod-name-2/data/:/var/lib/pears/data # !! CHANGE: point to your new directory pears-pod-name-2
+            - pears-pod-name-2/data/:/var/lib/pears/data
 
         https-portal:
             image: steveltn/https-portal:1
@@ -232,7 +224,7 @@ If you want to host another pod on the same server, we will have to re-use the s
 
 6. Bring Up the Docker Compose
 
-    > This command assumes that you are running this command from the directory in which the `docker-composen.yaml` file exists
+    > This command assumes that you are running this command from the directory in which the `docker-compose.yaml` file exists
 
     1. Start the Docker Compose services:
         ```bash
