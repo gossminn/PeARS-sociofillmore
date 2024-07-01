@@ -8,13 +8,10 @@
      - [Scaleway](#scaleway)
    - [Deploying Docker and Docker Compose](#deploying-docker-and-docker-compose)
    - [Installing Vim](#installing-vim)
-2. [Setup](#setup)
-   - [Setting Up the Deployment Directory](#setting-up-the-deployment-directory)
-   - [Downloading and Configuring the Docker Compose Files](#downloading-and-configuring-the-docker-compose-files)
-3. [Deploy](#deploy)
-   - [Bringing Up the Docker Compose](#bringing-up-the-docker-compose)
-4. [Management](#management)
-   - [Hosting Multiple Pods on the Same Server](#hosting-multiple-pods-on-the-same-server)
+2. [Deployment](#deploying-pears-dedicated)
+   - [Deploying your first PeARS-dedicated pod](#deploying-your-first-pears-dedicated-pod)
+   - [Adding more pods to your deployment](#adding-more-pods-to-the-same-server)
+3. [Management](#management)
    - [Backing Up Data](#backing-up-data)
 
 ## Prerequisites
@@ -59,12 +56,7 @@ The following instructions are for Ubuntu. For other distributions, refer to the
 
 ## Deploying PeARS-dedicated
 
-We are documenting two different deployment strategies here for single pod and multi pod deployments. This is so that, in the multi-pod strategy, you will be able to re-use some resources between different pods. Please pick the deployment strategy that works best for you:
-
-- [**1. Deploying a single PeARS-federated pod**](#deploying-a-single-pod)
-- [**1. Deploying multiple PeARS-federated pods**](#deploying-multiple-pods-in-the-same-server)
-
-#### Deploying a single pod
+#### Deploying your first PeARS-dedicated pod
 
 - **SSH into your server**
 
@@ -114,7 +106,7 @@ We are documenting two different deployment strategies here for single pod and m
 
     Make sure you create an A name record pointing from your PeARS URL to the public IP address of the server
 
-#### Deploying multiple pods in the same server
+#### Adding more pods to the same server
 
 If you want to host another pod on the same server, we will have to re-use the same docker-compose file by adding new pod configurations and re-using the `https-portal` container that you will find in the `docker-compose` file to point to differnt pods for different domain names. Here are the step by step details for doing that:
 
@@ -242,6 +234,8 @@ If you want to host another pod on the same server, we will have to re-use the s
 
 > If you want to add a third pod, you can continue the same steps as above but for a third entry
 
+
+## Management
 
 ### Backing Up Data
 
