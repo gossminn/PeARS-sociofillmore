@@ -55,9 +55,9 @@ The following instructions are for Ubuntu. For other distributions, refer to the
 
 ## Deploying PeARS-dedicated
 
----
 
 ### Deploying your first PeARS-dedicated pod
+---
 
 - **SSH into your server**
 
@@ -107,19 +107,23 @@ The following instructions are for Ubuntu. For other distributions, refer to the
 
     Make sure you create an A name record pointing from your PeARS URL to the public IP address of the server
 
----
+
+
 
 ### Adding more pods to the same server
+---
+
 
 If you want to host another pod on the same server, we will have to re-use the same docker-compose file by adding new pod configurations and re-using the `https-portal` container that you will find in the `docker-compose` file to point to differnt pods for different domain names. Here are the step by step details for doing that:
 
 > We assume you have already followed the above steps and have a single pod running already at this point
 
-1. Create a new directory for the new pod and copy the environment variables file from the previous pod for ease of editing
+1. Create a new directory for the new pod and download the environment variable file
     ```bash
     export PEARS_DIR_2=~/pears-pod-name-2 # replace pears-pod-name-2 with your new pod name
     mkdir -p ${PEARS_DIR_2}/data 
-    cp ~/pears-pod-name-1/.env ${PEARS_DIR_2}/.env
+    # You can also copy this file from your existing pod directory for ease of editing
+    wget https://raw.githubusercontent.com/PeARSearch/PeARS-federated/nvn/add-deploy-files/deployment/.env-template -O ${PEARS_DIR_2}/.env
     ```
 2. Change the environment details in the `.env` file:
     ```bash
@@ -157,7 +161,7 @@ If you want to host another pod on the same server, we will have to re-use the s
 
 4. To add another pod, you will have to first copy the `pears-federed` container definition to a new definition in the file with appropriate names as follows:
     ```
-    $ cat docker-compose.yaml
+    $ vim docker-compose.yaml
 
     version: '3.8'
 
@@ -181,7 +185,7 @@ If you want to host another pod on the same server, we will have to re-use the s
 
 5. Update `https-portal` pod to point to the new pod as well
     ```
-    $ cat docker-compose.yaml
+    $ vim docker-compose.yaml
 
     version: '3.8'
 
