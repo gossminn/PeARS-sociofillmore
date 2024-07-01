@@ -7,7 +7,6 @@
      - [Hetzner](#hetzner)
      - [Scaleway](#scaleway)
    - [Deploying Docker and Docker Compose](#deploying-docker-and-docker-compose)
-   - [Installing Vim](#installing-vim)
 2. [Deployment](#deploying-pears-dedicated)
    - [Deploying your first PeARS-dedicated pod](#deploying-your-first-pears-dedicated-pod)
    - [Adding more pods to your deployment](#adding-more-pods-to-the-same-server)
@@ -56,7 +55,9 @@ The following instructions are for Ubuntu. For other distributions, refer to the
 
 ## Deploying PeARS-dedicated
 
-#### Deploying your first PeARS-dedicated pod
+---
+
+### Deploying your first PeARS-dedicated pod
 
 - **SSH into your server**
 
@@ -106,7 +107,9 @@ The following instructions are for Ubuntu. For other distributions, refer to the
 
     Make sure you create an A name record pointing from your PeARS URL to the public IP address of the server
 
-#### Adding more pods to the same server
+---
+
+### Adding more pods to the same server
 
 If you want to host another pod on the same server, we will have to re-use the same docker-compose file by adding new pod configurations and re-using the `https-portal` container that you will find in the `docker-compose` file to point to differnt pods for different domain names. Here are the step by step details for doing that:
 
