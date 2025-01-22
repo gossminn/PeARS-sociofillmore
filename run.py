@@ -13,4 +13,4 @@ else:
     debug_mode = False
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=config("APP_PORT", default=8080), debug=debug_mode)
+    app.run(host='0.0.0.0', port=config("APP_PORT", default=8888), debug=debug_mode)
