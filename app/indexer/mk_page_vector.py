@@ -6,6 +6,8 @@ import logging
 from os.path import dirname, join, realpath
 from os import getenv
 import numpy as np
+import requests
+import json
 from scipy.sparse import csr_matrix, vstack, save_npz, load_npz
 from app import models, VEC_SIZE, DEFAULT_PATH
 from app.api.models import sp
@@ -33,6 +35,21 @@ def tokenize_text(text, lang, stringify = True):
         return text
     return tokens
 
+
+def get_frame_annotations(text, lang):
+    r = requests.get("https://responsibility-framing-sociofillmore-public.hf.space/sociofillmore", params={"text": text[:250], "language": lang})
+    if r.status_code != 200:
+        print(f"WARNING: sociofillmore error when processing text:\t{text}")
+        print(f"\n\tStatus code {r.status_code}\n\tError message: {r.text}")
+        return ""
+
+    annotations = json.loads(r.text)
+    frames = []
+    for sentence in annotations:
+        for frame_struct in sentence["fn_structures"]:
+            frame = frame_struct["frame"]
+            frames.append(frame)
+    return ", ".join(frames)
 
 def compute_and_stack_new_vec(lang, tokenized_text, pod_m):
     """ Given the tokenized text, compute a new vector
@@ -67,15 +84,16 @@ def compute_vector(url, theme, contributor, url_type):
         user_dir = join(pod_dir, contributor, lang)
         npz_path = join(user_dir,theme+'.u.'+contributor+'.npz')
         pod_m = load_npz(npz_path)
-        text = title + " " + body_str
+        frame_annotations = get_frame_annotations(title + " " + body_str, lang)
+        text = title + " " + body_str + "\n" + frame_annotations
         tokenized_text = tokenize_text(text, lang)
         pod_m, success = compute_and_stack_new_vec(lang, tokenized_text, pod_m)
         if success:
             save_npz(npz_path,pod_m)
             idv = pod_m.shape[0]-1
-            return True, tokenized_text, lang, title, snippet, idv, messages
+            return True, tokenized_text, lang, title, snippet, frame_annotations, idv, messages
     messages.append(">> INDEXER ERROR: compute_vectors: error during parsing")
-    return False, None, None, None, None, None, messages
+    return False, None, None, None, None, None, None, messages
 
 
 def compute_vector_local_docs(title, doc, theme, lang, contributor):
@@ -86,7 +104,9 @@ def compute_vector_local_docs(title, doc, theme, lang, contributor):
     npz_path = join(user_dir,theme+'.u.'+contributor+'.npz')
     pod_m = load_npz(npz_path)
     #print("Computing vectors for", target_url, "(",theme,")",lang)
-    text = title + ". " + theme + ". " + doc
+    frame_annotations = get_frame_annotations(title + ". " + theme + ". " + doc, lang)
+    text = title + ". " + theme + ". " + doc + "\n" + frame_annotations
+    orig_text = text
     text = tokenize_text(text, lang)
     pod_m, success = compute_and_stack_new_vec(lang, text, pod_m)
     if doc != "":
@@ -96,8 +116,8 @@ def compute_vector_local_docs(title, doc, theme, lang, contributor):
     if success:
         save_npz(npz_path,pod_m)
         vid = pod_m.shape[0]-1
-        return True, text, snippet, vid
-    return False, text, snippet, None
+        return True, text, snippet, frame_annotations, vid
+    return False, text, snippet, None, None
 
 def compute_query_vectors(query, lang, expansion_length=None):
     """ Make query vectors: the vector for the original

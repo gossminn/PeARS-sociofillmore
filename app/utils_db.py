@@ -68,7 +68,7 @@ def create_pod_in_db(contributor, theme, lang):
         db.session.add(p)
         db.session.commit()
 
-def create_or_replace_url_in_db(url, title, idv, snippet, theme, lang, note, share, contributor, entry_type):
+def create_or_replace_url_in_db(url, title, idv, snippet, frame_annotations, theme, lang, note, share, contributor, entry_type):
     """Add a new URL to the database or update it.
     Arguments: url, title, snippet, theme, language,
     note warning, username, type (url or doc).
@@ -82,6 +82,7 @@ def create_or_replace_url_in_db(url, title, idv, snippet, theme, lang, note, sha
     u.title = title
     u.vector = idv
     u.snippet = snippet
+    u.frame_annotations = frame_annotations
     u.pod = theme+'.u.'+contributor
     u.language = lang
     u.share = share
