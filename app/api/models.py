@@ -75,6 +75,7 @@ class Urls(Base):
     url = db.Column(db.String(1000))
     title = db.Column(db.String(1000))
     snippet = db.Column(db.String(1000))
+    frame_annotations = db.Column(db.String(1000))
     doctype = db.Column(db.String(1000))
     vector = db.Column(db.Integer)
     pod = db.Column(db.String(1000))

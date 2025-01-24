@@ -75,6 +75,10 @@ def prepare_gui_results(query, results):
         logging.debug(f"RESULT URL {url}")
         if 'url=pearslocal' not in url:
             r['snippet'] = ' '.join(r['snippet'].split()[:snippet_length])
+        if not r['frame_annotations']:
+            r['frame_annotations'] = None
+        else:
+            r['frame_annotations'] = r['frame_annotations'].split(", ")
         if r['notes'] == 'None':
             r['notes'] = None
         else:
