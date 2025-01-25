@@ -17,11 +17,11 @@ FEEDS_TO_WATCH = {
     "it": {
         "repubblica": "http://www.repubblica.it/rss/cronaca/rss2.0.xml",
         "corriere": "http://xml2.corriereobjects.it/rss/cronache.xml",
-        "rainews": "https://www.rainews.it/rss/cronaca",
-        "sky24": "https://tg24.sky.it/rss/tg24.xml",
-        "tgcom": "http://www.tgcom24.mediaset.it/rss/cronaca.xml",
-        "ansa": "https://www.ansa.it/sito/notizie/cronaca/cronaca_rss.xml",
-        "open": "https://www.open.online/feed/"
+        # "rainews": "https://www.rainews.it/rss/cronaca",
+        # "sky24": "https://tg24.sky.it/rss/tg24.xml",
+        # "tgcom": "http://www.tgcom24.mediaset.it/rss/cronaca.xml",
+        # "ansa": "https://www.ansa.it/sito/notizie/cronaca/cronaca_rss.xml",
+        # "open": "https://www.open.online/feed/"
     },
     "nl": {
         "ad": "COLLECTION::rss/ad.json",
@@ -71,7 +71,7 @@ def crawl():
             known_urls = set(existing_records["link"].to_list())
         new_records = get_new_records(known_urls, language)
         new_records_femicides = new_records[new_records["detected_possible_femicide"]]
-        for _, row in new_records_femicides:
+        for _, row in new_records_femicides.iterrows():
             print("possible femicide:", row["link"])
             create_suggestion_in_db(row["link"], "crawled_possible_femicides", "auto-detected based on keywords", "gossminn")
 

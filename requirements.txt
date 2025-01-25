@@ -64,3 +64,5 @@ zipp==3.18.1
 dateparser==1.2.0
 feedparser==6.0.11
 news-please==1.6.13
+boto3==1.35.66
+botocore==1.35.66
