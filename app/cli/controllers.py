@@ -20,6 +20,7 @@ from flask import Blueprint
 import click
 from werkzeug.security import generate_password_hash
 from scipy.sparse import load_npz, csr_matrix, vstack
+from app.framing import femicide_suggestor
 from app.indexer.controllers import run_indexer_url, index_doc_from_cli
 from app.indexer.access import request_url
 from app.indexer.posix import load_posix
@@ -262,7 +263,13 @@ def index_wiki(folder, regex, lang, contributor, host_url):
                 else:
                     doc+=l+' '
 
+######################
+# SOCIOFILLMORE
+######################
 
+@pears.cli.command('collect-femicide-suggestions')
+def collect_femicide_suggestions():
+    femicide_suggestor.suggest_femicides()
 
 ######################
 # CLEAN UP CODE
