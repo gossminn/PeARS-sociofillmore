@@ -1,3 +1,4 @@
+import glob
 import time
 
 import requests
@@ -10,9 +11,19 @@ from app.utils_db import create_suggestion_in_db
 
 
 def suggest_femicides():
-    r = requests.get(
+    existing_records = sorted(glob.glob("scraping_records.*.jsonl"))
+    if not existing_records:
+        known_urls = []
+    else:
+        records_file = existing_records[-1]
+        print(f"Reading known records from {records_file}")
+        records_df = pd.read_json(records_file, orient="records", lines=True)
+        known_urls = list(records_df["link"])
+
+    r = requests.post(
         url="https://responsibility-framing-femicide-detector.hf.space/crawl",
-        headers={"Content-Type": "application/json", "Authorization": f"Bearer {app.config['HF_TOKEN']}"}
+        headers={"Content-Type": "application/json", "Authorization": f"Bearer {app.config['HF_TOKEN']}"},
+        json={"known_urls": known_urls}
     )
     thread_id = r.json()["thread_id"]
     print(f"Server started crawling, thread_id={thread_id}")
