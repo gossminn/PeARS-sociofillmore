@@ -9,6 +9,6 @@ framing = Blueprint('framing', __name__, url_prefix='/framing')
 def femicides():
     femicide_urls = []
     for s in db.session.query(Suggestions).filter_by(pod="possible_femicides").all():
-        femicide_urls.append({"url": s.url, "date_created": s.date_created})
+        femicide_urls.append({"url": s.url, "date_created": s.date_created, "notes": s.notes})
 
     return jsonify(femicide_urls)

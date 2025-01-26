@@ -35,12 +35,14 @@ def suggest_femicides():
         url=f"https://responsibility-framing-femicide-detector.hf.space/get_data/{thread_id}",
         headers={"Content-Type": "application/json", "Authorization": f"Bearer {app.config['HF_TOKEN']}"}            
     )
-    with open("scraping_records.jsonl", "w", encoding="utf-8") as f:
+
+    scrape_file = f"scraping_records.{time.time_ns()}.jsonl"
+    with open(scrape_file, "w", encoding="utf-8") as f:
         f.write(r.text)
 
-    new_records = pd.read_json("scraping_records.jsonl", orient="records", lines=True)
+    new_records = pd.read_json(scrape_file, orient="records", lines=True)
     new_records_femicides = new_records[new_records["detected_possible_femicide"]]
     for _, row in new_records_femicides.iterrows():
         if not db.session.query(Suggestions).filter_by(url=row["link"]).all():
             print("adding suggested possible femicide article to DB:", row["link"])
-            create_suggestion_in_db(row["link"], "possible_femicides", f"auto-detected possible femicide, detector thread_id={thread_id}", "femicide_suggestor")
+            create_suggestion_in_db(row["link"], "possible_femicides", f"auto-detected possible femicide, detector thread_id={thread_id}, keywords_matched={row['femicide_keywords_matched']}", "femicide_suggestor")
