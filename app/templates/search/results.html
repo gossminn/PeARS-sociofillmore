@@ -88,11 +88,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 	        </p>
 	      </div>
 	      {% endif %}<!-- note -->
-        {% if result["frames"] != None %}<!-- frames -->
+        {% if result["frame_annotations"] != None %}<!-- frames -->
         <div>
-        {% for frame in result["frames"] %}
+        {% for frame in result["frame_annotations"] %}
           <button>{{frame}}</button>
         {% endfor %}
+        </div>
+        {% else %}
+        <div class="alert alert-warning">
+          No frame annotations found for this entry.
         </div>
         {% endif %}
         <hr>

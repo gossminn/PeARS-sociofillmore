@@ -84,7 +84,7 @@ def prepare_gui_results(query, results):
         r['title'] = ' '.join(r['title'].split()[:10])
         r['snippet'] = beautify_snippet(r['snippet'], query)
         logging.debug(f"RESULT URL {url}")
-        if not r['frame_annotations']:
+        if 'frame_annotions' not in r or not r['frame_annotations']:
             r['frame_annotations'] = None
         else:
             r['frame_annotations'] = r['frame_annotations'].split(", ")
