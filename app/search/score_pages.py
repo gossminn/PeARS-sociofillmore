@@ -107,7 +107,7 @@ def compute_scores(query, query_vectors, lang):
     # Document ids with non-zero values (match at least one subword)
     idx = np.where(cos!=0)[0]
 
-    # Sort document ids with non-zero values
+    # Sort document ids with non-zero values and take top 50
     idx = np.argsort(cos)[-len(idx):][::-1][:50]
 
     # Get urls
@@ -124,6 +124,15 @@ def compute_scores(query, query_vectors, lang):
         else:
             snippet = ' '.join(u.snippet.split()[:snippet_length])
             snippet_score = snippet_overlap(query, u.title+' '+snippet)
+        loc = urlparse(u.url).netloc.split('.')[0]
+
+        #Big boost in case the query word is the url
+        if query == loc:
+            snippet_score+=0.5
+        #Little boost in case the query words are in the url
+        for w in query.split():
+            if w in u.url:
+                snippet_score+=0.1
         snippet_scores[u.url] = snippet_score
 
     for i, u in enumerate(best_urls):
@@ -136,17 +145,17 @@ def compute_scores(query, query_vectors, lang):
 def return_best_urls(doc_scores):
     best_urls = []
     scores = []
-    netlocs_used = []  # Don't return 100 pages from the same site
+    #netlocs_used = []  # Don't return 100 pages from the same site
     c = 0
     for w in sorted(doc_scores, key=doc_scores.get, reverse=True):
-        loc = urlparse(w).netloc
+        #loc = urlparse(w).netloc
         if c < 50:
             if doc_scores[w] >= 0.5:
                 #if netlocs_used.count(loc) < 10:
                 #print("DOC SCORE",w,doc_scores[w])
                 best_urls.append(w)
                 scores.append(doc_scores[w])
-                netlocs_used.append(loc)
+                #netlocs_used.append(loc)
                 c += 1
             else:
                 break
@@ -155,16 +164,19 @@ def return_best_urls(doc_scores):
     return best_urls, scores
 
 
-def output(best_urls):
+def output(best_urls, scores):
+    snippet_length = app.config['SNIPPET_LENGTH']
     results = {}
     urls = Urls.query.filter(Urls.url.in_(best_urls)).all()
     urls = [next(u for u in urls if u.url == best_url) for best_url in best_urls]
-    for u in urls:
+    for i, u in enumerate(urls):
         url = u.url
-        if url.startswith('pearslocal'):
-            url = url_for('api.return_specific_url')+'?url='+url
         results[url] = u.as_dict()
+        results[url]['score'] = scores[i]
+        if not url.startswith('pearslocal'):
+            results[url]['snippet'] = ' '.join(results[url]['snippet'].split()[:snippet_length])
     return results
+
 
 
 def run_search(query, lang, extended=True):
@@ -193,7 +205,7 @@ def run_search(query, lang, extended=True):
             merged_scores[k] = 0.5*extended_document_scores[k]
 
     best_urls, scores = return_best_urls(merged_scores)
-    results = output(best_urls)
+    results = output(best_urls, scores)
     return results, scores
 
 

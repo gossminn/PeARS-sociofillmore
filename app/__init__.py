@@ -1,63 +1,26 @@
-# SPDX-FileCopyrightText: 2024 PeARS Project, <community@pearsproject.org> 
+# SPDX-FileCopyrightText: 2025 PeARS Project, <community@pearsproject.org>
 #
 # SPDX-License-Identifier: AGPL-3.0-only
 
-import logging
 from os import getenv, path
 from glob import glob
 from pathlib import Path
-from os.path import join, dirname, realpath, isfile
+from os.path import join, dirname, realpath
+import logging
 
 # Import flask and template operators
-from flask import Flask, flash, render_template, send_file, send_from_directory, request, abort
+from flask import Flask, flash, send_file, send_from_directory, request, abort, render_template, url_for
+from flask_migrate import Migrate
 from flask_admin import Admin, AdminIndexView
 from flask_mail import Mail
 
 # Import SQLAlchemy and LoginManager
 from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
 from flask_login import LoginManager, current_user
 
-dir_path = dirname(realpath(__file__))
+USERNAME = getenv('PA_USERNAME') #PythonAnywhere username
+DEFAULT_PATH = f'/home/{USERNAME}/PeARS-sociofillmore/app/'
 
-#########
-# Logging
-#########
-
-# Set up basic logging configuration for the root logger
-formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-logging.basicConfig(level=logging.ERROR, filename="system.log", format='%(asctime)s | %(levelname)s : %(message)s')
-logging.getLogger('werkzeug').setLevel(logging.ERROR)
-logging.error("Checking system logs on init.")
-
-# Define a custom log level
-MAILING = 55
-logging.MAILING = MAILING
-logging.addLevelName(logging.MAILING, 'MAILING')
-
-# Define a custom logging method for the new level
-def mailing(self, message, *args, **kwargs):
-    if self.isEnabledFor(logging.MAILING):
-        self._log(logging.MAILING, message, args, **kwargs)
-
-# Add the custom logging method to the logger class
-logging.Logger.mailing = mailing
-
-# Set up logger
-def setup_logger(name, log_file, level=logging.INFO):
-    """To setup as many loggers as you want"""
-
-    handler = logging.FileHandler(log_file)        
-    handler.setFormatter(formatter)
-
-    logger = logging.getLogger(name)
-    logger.setLevel(level)
-    logger.addHandler(handler)
-
-    return logger
-
-mail_logger = setup_logger('mailing_logger', 'mailing.log', level=logging.MAILING)
-mail_logger.mailing("Checking mailing logs on init.")
 
 ####################################
 # Define the WSGI application object
@@ -65,86 +28,64 @@ mail_logger.mailing("Checking mailing logs on init.")
 
 app = Flask(__name__, static_folder='static')
 
+from app.init_logging import run_logging
+mail_logger = run_logging()
 
 ################
 # Configurations
 ################
-from dotenv import load_dotenv
-app.config.from_object('config')
 
-load_dotenv()
-app.config['SESSION_COOKIE_SECURE'] = True
-app.config['MAIL_DEFAULT_SENDER'] = getenv("MAIL_DEFAULT_SENDER")
-app.config['MAIL_SERVER'] = getenv("MAIL_SERVER")
-app.config['MAIL_PORT'] = getenv("MAIL_PORT")
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USE_SSL'] = False
-app.config['MAIL_DEBUG'] = False
-app.config['MAIL_USERNAME'] = getenv("EMAIL_USER")
-app.config['MAIL_PASSWORD'] = getenv("EMAIL_PASSWORD")
-app.config['SITENAME'] = getenv("SITENAME")
-app.config['SITE_TOPIC'] = getenv("SITE_TOPIC")
-app.config['SEARCH_PLACEHOLDER'] = getenv("SEARCH_PLACEHOLDER")
-app.config['SQLALCHEMY_DATABASE_URI'] = getenv("SQLALCHEMY_DATABASE_URI", app.config.get("SQLALCHEMY_DATABASE_URI"))
-app.config['USER-AGENT'] = "Mozilla/5.0 AppleWebKit/537.36 (KHTML, like Gecko; compatible; PeARSbot/0.1; +https://www.pearsproject.org/) Chrome/126.0.6478.114 Safari/537.36"
+from app.init_config import run_config
+app = run_config(app)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////home/'+USERNAME+'/PeARS-sociofillmore/app.db'
 
-# Secrets
-app.config['SECRET_KEY'] = getenv("SECRET_KEY")                         
-app.config['SECURITY_PASSWORD_SALT'] = getenv("SECURITY_PASSWORD_SALT")
-app.config['SESSION_COOKIE_HTTPONLY'] = False
-app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
-app.config['CSRF_ENABLED'] = True
-app.config['CSRF_SESSION_KEY'] = getenv("CSRF_SESSION_KEY")
-
-# For SocioFillmore
-app.config['HF_TOKEN'] = getenv("HF_TOKEN")
-
-# Legal
-app.config['ORG_NAME'] = getenv("ORG_NAME")
-app.config['ORG_ADDRESS'] = getenv("ORG_ADDRESS")
-app.config['ORG_EMAIL'] = getenv("ORG_EMAIL")
-app.config['APPLICABLE_LAW'] = getenv("APPLICABLE_LAW")
-app.config['SERVERS'] = getenv("SERVERS")
-app.config['EU_SPECIFIC'] = True if getenv("EU_SPECIFIC", "false").lower() == 'true' else False
-app.config['SNIPPET_LENGTH'] = int(getenv("SNIPPET_LENGTH"))
-
-# User-related settings
-app.config['NEW_USERS'] = True if getenv("NEW_USERS_ALLOWED", "false").lower() == 'true' else False
-app.config['FEEDBACK_FORM'] = True if getenv("FEEDBACK_FORM", "false").lower() == 'true' else False
-
-# Localization
 from flask_babel import Babel, gettext
-app.config['LANGS'] = getenv('PEARS_LANGS', "en").split(',')
 first_lang = app.config['LANGS'][0]
-app.config['BABEL_DEFAULT_LOCALE'] = first_lang
-app.config['BABEL_TRANSLATION_DIRECTORIES'] = getenv("TRANSLATION_DIR")
 babel = Babel(app)
 
-# Optimization
-app.config['LIVE_MATRIX'] = True if getenv("LIVE_MATRIX", "false").lower() == 'true' else False
-app.config['EXTEND_QUERY'] = True if getenv("EXTEND_QUERY", "false").lower() == 'true' else False
-
-#Legacy
-#app.config['MAX_PODS'] = int(getenv("MAX_PODS"))
-#app.config['LOADED_POS_INDEX'] = int(getenv("LOADED_POS_INDEX"))
-
-# Make sure user data directories exist
-DEFAULT_PATH = dir_path
-Path(path.join(DEFAULT_PATH,'userdata')).mkdir(parents=True, exist_ok=True)
-if getenv("SUGGESTIONS_DIR", "") != "":
-    Path(getenv("SUGGESTIONS_DIR")).mkdir(parents=True, exist_ok=True)
-
-# Mail
 mail = Mail(app)
 
+# Make sure user data directories exist
+Path(path.join(DEFAULT_PATH,'userdata')).mkdir(parents=True, exist_ok=True)
+
+
+########################
+# Load pretrained models
+########################
+from app.readers import read_vocab, read_cosines
+from app.multilinguality import read_language_codes, read_stopwords
+from sklearn.feature_extraction.text import CountVectorizer
+
+LANGUAGE_CODES = read_language_codes()
+models = dict()
+for LANG in app.config['LANGS']:
+    models[LANG] = {}
+    spm_vocab_path = join(DEFAULT_PATH, f'api/models/{LANG}/{LANG}wiki.16k.vocab')
+    ft_path = join(DEFAULT_PATH, f'api/models/{LANG}/{LANG}wiki.16k.cos')
+    vocab, inverted_vocab, logprobs = read_vocab(spm_vocab_path)
+    vectorizer = CountVectorizer(vocabulary=vocab, lowercase=True, token_pattern='[^ ]+')
+    ftcos = read_cosines(ft_path)
+    models[LANG]['vocab'] = vocab
+    models[LANG]['inverted_vocab'] = inverted_vocab
+    models[LANG]['logprobs'] = logprobs
+    models[LANG]['vectorizer'] = vectorizer
+    models[LANG]['nns'] = ftcos
+    if LANG in LANGUAGE_CODES:
+        models[LANG]['stopwords'] = read_stopwords(LANGUAGE_CODES[LANG].lower())
+    else:
+        models[LANG]['stopwords'] = []
+
+# All vocabs have the same vector size
+VEC_SIZE = len(models[first_lang]['vocab'])
 
 ########################
 # Jinja global variables
 ########################
 
+dir_path = DEFAULT_PATH
 app.config['OWN_BRAND'] = True if getenv('OWN_BRAND', "false").lower() == 'true' else False
 logo_path = getenv('LOGO_PATH', '')
-if logo_path != '' and isfile(join(logo_path, "logo.png")):
+if logo_path != '' and path.isfile(join(logo_path, "logo.png")):
     app.config['LOGO_PATH'] = logo_path
 else:
     app.config['LOGO_PATH'] = join(dir_path,'static','assets')
@@ -161,37 +102,10 @@ def serve_logos(path):
     return send_from_directory(app.config['LOGO_PATH'], path)
 
 
-########################
-# Load pretrained models
-########################
-
-from app.readers import read_vocab, read_cosines
-from app.multilinguality import read_language_codes, read_stopwords
-from sklearn.feature_extraction.text import CountVectorizer
-
-LANGUAGE_CODES = read_language_codes()
-models = dict()
-for LANG in app.config['LANGS']:
-    models[LANG] = {}
-    spm_vocab_path = f'app/api/models/{LANG}/{LANG}wiki.16k.vocab'
-    ft_path = f'app/api/models/{LANG}/{LANG}wiki.16k.cos'
-    vocab, inverted_vocab, logprobs = read_vocab(spm_vocab_path)
-    vectorizer = CountVectorizer(vocabulary=vocab, lowercase=True, token_pattern='[^ ]+')
-    ftcos = read_cosines(ft_path)
-    models[LANG]['vocab'] = vocab
-    models[LANG]['inverted_vocab'] = inverted_vocab
-    models[LANG]['logprobs'] = logprobs
-    models[LANG]['vectorizer'] = vectorizer
-    models[LANG]['nns'] = ftcos
-    models[LANG]['stopwords'] = read_stopwords(LANGUAGE_CODES[LANG].lower())
-
-# All vocabs have the same vector size
-VEC_SIZE = len(models[first_lang]['vocab'])
 
 ##########
 # Database
 ##########
-
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
@@ -221,12 +135,28 @@ app.register_blueprint(orchard_module)
 app.register_blueprint(pages_module)
 app.register_blueprint(settings_module)
 app.register_blueprint(auth_module)
+# ..
 
 # Build the database:
 # This will create the database file using SQLAlchemy
 # db.drop_all()
 with app.app_context():
     db.create_all()
+
+@app.before_request
+def check_under_maintenance():
+    if reroute_for_maintenance(request.path):
+        abort(503)
+
+from app.settings.controllers import get_maintance_mode
+def reroute_for_maintenance(path):
+    if not get_maintance_mode():
+        return False
+    if path in [url_for('settings.toggle_maintenance_mode'), url_for('auth.login'), url_for('auth.logout')]:
+        return False
+    if '/static/' in path:
+        return False
+    return True
 
 
 ##############
@@ -248,12 +178,25 @@ if not app.config['LIVE_MATRIX']:
         models[LANG]['podnames'] = podnames
         models[LANG]['urls'] = urls
 
-# Legacy
-#if app.config['LOADED_POS_INDEX'] > 0:
-#    from app.indexer.posix import load_posindices
-#    for LANG in LANGS:
-#        models[LANG]['posix'] = load_posindices(LANG, n=app.config['LOADED_POS_INDEX'])
 
+#######################
+# Decentralized search
+#######################
+
+from app.search.cross_instance_search import filter_instances_by_language
+from flask import url_for
+
+instances, M, _  = filter_instances_by_language()
+
+_sitename_check_completed = False
+@app.before_request
+def check_sitename_and_hostname():
+    global _sitename_check_completed
+    if not _sitename_check_completed: # only do this once
+        host_url = url_for("search.index", _external=True)
+        if host_url.rstrip("/") != app.config["SITENAME"]:
+            logging.error("`host_url` and `SITENAME` do not match -- this can cause errors, correct this unless you know what you are doing!")
+        _sitename_check_completed = True
 
 #######
 # Admin
@@ -271,7 +214,7 @@ from flask_admin.model.template import EndpointLinkRowAction
 # Authentification
 class MyLoginManager(LoginManager):
     def unauthorized(self):
-        return abort(404)        
+        return abort(404)
 
 login_manager = MyLoginManager()
 login_manager.login_view = 'auth.login'
@@ -283,8 +226,6 @@ from app.api.models import User
 def load_user(user_id):
     # since the user_id is just the primary key of our user table, use it in the query for the user
     return User.query.get(int(user_id))
-
-
 
 # Flask and Flask-SQLAlchemy initialization here
 
@@ -487,9 +428,13 @@ admin.add_view(SuggestionsModelView(Suggestions, db.session))
 
 @app.errorhandler(404)
 def page_not_found(e):
-    # note that we set the 404 status explicitly
     flash("The page that you are trying to access doesn't exist or you don't have sufficient permissions to access it. If you're not logged in, log in and try accessing the page again. If you're sure the page exists and that you should have access to it, contact the administrators.")
     return render_template("404.html"), 404
+
+@app.errorhandler(503)
+def maintenance_mode(e):
+    flash("We are doing some (hopefully) quick maintenance on this instance. Please check back later!")
+    return render_template("503.html"), 503
 
 @app.route('/manifest.json')
 def serve_manifest():
@@ -502,7 +447,6 @@ def serve_sw():
 @app.route('/robots.txt')
 def static_from_root():
  return send_from_directory(app.static_folder, request.path[1:])
-
 
 from app.cli.controllers import pears as pears_module
 app.register_blueprint(pears_module)

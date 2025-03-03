@@ -109,6 +109,17 @@ def install_language(lang):
             print("Request failed when trying to access", path, "...")
 
 
+
+###########################
+# DIAGNOSES
+###########################
+
+@pears.cli.command('diagnose')
+def diagnose():
+    from app.cli.diagnose import check_sitename
+    check_sitename()
+
+
 ###########################
 # BACKUP STUFF
 ###########################
@@ -169,10 +180,21 @@ def index(host_url, filepath):
     with one url per line.
     Use from CLI with flask pears index <your site's domain> <path>
     '''
+    # make sure the host_url starts with https:// so that it can be parsed correctly by urllib.parse.urlparse 
+    if not host_url.startswith("https://"):
+        host_url = "https://" + host_url
+
     users = User.query.all()
     for user in users:
         Path(join(pod_dir,user.username)).mkdir(parents=True, exist_ok=True)
-    run_indexer_url(filepath, host_url)
+    with open(filepath, encoding="utf-8") as f:
+        for line in f:
+            m = re.match(r"^(.+?);(.+?);;(.+?)$", line)
+            assert m, "URL file is not formatted correctly!"
+            url = m.group(1)
+            pod = m.group(2)
+            user = m.group(3)
+            run_indexer_url(url, pod, None, user, host_url)
 
 
 @pears.cli.command('randomcrawl')
@@ -272,7 +294,7 @@ def collect_femicide_suggestions():
     femicide_suggestor.suggest_femicides()
 
 ######################
-# CLEAN UP CODE
+# CLEAN THINGS UP
 ######################
 
 @pears.cli.command('deletedbonly')
@@ -428,6 +450,16 @@ def check_pos_vs_npz_to_idx(pod, username, language):
 @click.argument('basedir')
 def rebuild_from_db(basedir):
     from app.cli.rebuild import rebuild_pods_and_urls, rebuild_users, rebuild_personalization
-    #rebuild_pods_and_urls(pod_dir, basedir)
-    #rebuild_users(basedir)
+    rebuild_pods_and_urls(pod_dir, basedir)
+    rebuild_users(basedir)
     rebuild_personalization(basedir)
+
+@pears.cli.command('updateinstancename')
+@click.argument('oldname')
+@click.argument('newname')
+def update_instance_name(oldname, newname):
+    urls = Urls.query.all()
+    for u in urls:
+        u.share = u.share.replace(oldname, newname)
+        db.session.add(u)
+        db.session.commit()

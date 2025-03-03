@@ -11,10 +11,76 @@
 {% endmacro %}
 
 
-{% macro render_field(field) %}
+{% macro render_field(field, readonly=False) %}
 <div class="form-group">
         {{ field.label }}
-        {{ field(class_="form-control input-s", size=32) }}
+        {{ field(class_="form-control input-s", readonly=readonly, size=32) }}
+</div>
+<dd>{% if field.errors %}
+    <ul class=errors>
+    {% for error in field.errors %}
+    <li><b>{{ error }}</b></li>
+    {% endfor %}
+    </ul>
+  {% endif %}
+</dd>
+{% endmacro %}
+
+{% macro render_captcha_field(field, captcha_id) %}
+<div class="form-group">
+        {% set explain_image = gettext("To verify that you are a human being, we ask you to write down the sequence of numbers that you see in the image below. If the sequence is too hard, click the refresh button to get a new one, or click on the ear icon to get a new sequence as an audio file.") %}
+        {% set explain_audio = gettext("To verify that you are a human being, we ask you to write down the sequence of numbers that you hear in the audio file below. If the audio player doesn't load, you can also download the file. If the sequence is too hard, click the refresh button to get a new one, or click on the eye icon to get a new sequence as an image.") %}
+        <p class="alert alert-info"><small id="captcha-alert">{{explain_image}}</small></p>
+        <div>
+          <script>
+            let contentType = "image";
+            let buttonText = "";
+            let alertText = "";
+            function toggleContentType() {
+              if (contentType === "image") {
+                contentType = "audio";
+                buttonText = '<ion-icon name="eye-outline" size="large"></ion-icon>';
+                alertText = "{{explain_audio}}";
+              } 
+              else {
+                contentType = "image";
+                buttonText = '<ion-icon name="ear-outline" size="large"></ion-icon>';
+                alertText = "{{explain_image}}";
+              }
+              $("#captcha-switch").html(buttonText);
+              $("#captcha-alert").text(alertText);
+              refreshCaptcha();
+            }
+            function refreshCaptcha() {
+              let origUrl = "/auth/show_captcha/{{captcha_id}}";
+              let timeStamp = new Date().getTime();
+
+              // empty the existing captcha
+              let $display = $("#captcha-display");
+              $display.empty();
+
+              // generate new image
+              if (contentType === "image") {
+                let newUrl = origUrl + "?refresh=true&t=" + timeStamp;
+                $display.append(`<img src="${newUrl}">`); 
+              }
+
+              // generate new audio
+              else {
+                let newUrl = origUrl + "?audio=true&refresh=true&t=" + timeStamp;
+                $display.append(`<audio controls src="${newUrl}"></audio>`)
+                downloadUrl = origUrl + "?audio=true";
+                $display.append(`<br><a class="btn btn-sm btn-primary" title="{{gettext("Download the audio file in case the player doesn't load")}}" href="${downloadUrl}">{{gettext("Download as .wav")}}</a>`)
+              }
+            }
+          </script>
+          <div class="mb-3">
+		  <span id="captcha-display"><img src="/auth/show_captcha/{{captcha_id}}"></span>
+	    <a class="btn btn-lg btn-light" onclick="refreshCaptcha();" title="refresh"><ion-icon name="refresh-circle-outline" size="large"></ion-icon></a>
+            <a class="btn btn-lg btn-light" id="captcha-switch" onclick="toggleContentType();" title="toggle image/audio captcha"><ion-icon name="ear-outline" size="large"></ion-icon></a>
+          </div>
+        </div>
+        {{ field(class_="form-control input-s", size=32, placeholder=gettext("Enter the numbers you saw/heard here.")) }}
 </div>
 <dd>{% if field.errors %}
     <ul class=errors>
