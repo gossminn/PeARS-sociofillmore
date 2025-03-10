@@ -6,6 +6,7 @@ from os import getenv, path
 from glob import glob
 from pathlib import Path
 from os.path import join, dirname, realpath
+import os
 import logging
 
 # Import flask and template operators
@@ -19,8 +20,8 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, current_user
 
 USERNAME = getenv('PA_USERNAME') #PythonAnywhere username
-DEFAULT_PATH = f'/home/{USERNAME}/PeARS-sociofillmore/app/'
-
+# DEFAULT_PATH = f'/home/{USERNAME}/PeARS-sociofillmore/app/'
+DEFAULT_PATH = join(os.getcwd(), "app")
 
 ####################################
 # Define the WSGI application object
@@ -37,7 +38,7 @@ mail_logger = run_logging()
 
 from app.init_config import run_config
 app = run_config(app)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////home/'+USERNAME+'/PeARS-sociofillmore/app.db'
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////home/'+USERNAME+'/PeARS-sociofillmore/app.db'
 
 from flask_babel import Babel, gettext
 first_lang = app.config['LANGS'][0]
@@ -46,7 +47,7 @@ babel = Babel(app)
 mail = Mail(app)
 
 # Make sure user data directories exist
-Path(path.join(DEFAULT_PATH,'userdata')).mkdir(parents=True, exist_ok=True)
+# Path(path.join(DEFAULT_PATH,'userdata')).mkdir(parents=True, exist_ok=True)
 
 
 ########################
@@ -195,7 +196,7 @@ def check_sitename_and_hostname():
     if not _sitename_check_completed: # only do this once
         host_url = url_for("search.index", _external=True)
         if host_url.rstrip("/") != app.config["SITENAME"]:
-            logging.error("`host_url` and `SITENAME` do not match -- this can cause errors, correct this unless you know what you are doing!")
+            logging.error(f"`host_url` ({host_url}) and `SITENAME` ({app.config['SITENAME']}) do not match -- this can cause errors, correct this unless you know what you are doing!")
         _sitename_check_completed = True
 
 #######
