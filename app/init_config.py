@@ -52,7 +52,8 @@ def run_config(app):
     # Optimization
     app.config['LIVE_MATRIX'] = True if getenv("LIVE_MATRIX", "false").lower() == 'true' else False
     app.config['EXTEND_QUERY'] = True if getenv("EXTEND_QUERY", "false").lower() == 'true' else False
-    return app
 
     # Femicide scraper
     app.config['HF_TOKEN'] = getenv('HF_TOKEN')
+
+    return app
