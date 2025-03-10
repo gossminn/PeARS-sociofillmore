@@ -38,7 +38,7 @@ mail_logger = run_logging()
 
 from app.init_config import run_config
 app = run_config(app)
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////home/'+USERNAME+'/PeARS-sociofillmore/app.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////home/'+USERNAME+'/PeARS-sociofillmore/app.db'
 
 from flask_babel import Babel, gettext
 first_lang = app.config['LANGS'][0]
@@ -47,7 +47,7 @@ babel = Babel(app)
 mail = Mail(app)
 
 # Make sure user data directories exist
-# Path(path.join(DEFAULT_PATH,'userdata')).mkdir(parents=True, exist_ok=True)
+Path(path.join(DEFAULT_PATH,'userdata')).mkdir(parents=True, exist_ok=True)
 
 
 ########################
